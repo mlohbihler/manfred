@@ -1,0 +1,38 @@
+// This is the sketch for Manfred on the Nano.
+
+#include <Wire.h>
+#include <Servo.h>
+#include "Ultrasonic.h"
+
+byte buf[2];
+int index = 32500;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Nano startup");
+  
+  // Start wire (I2C)
+  Wire.begin(112); // I2C address 0x70.
+  Wire.onRequest(requestEvent);
+}
+
+void loop() {
+  // Read servos
+  // Read ultrasonic
+  Serial.println("Start loop");
+  delay(1000);
+  Serial.println("End loop");
+}
+
+// Function that is executed whenever data is requested
+// by the master. Registered in setup().
+void requestEvent() {
+  Serial.print("Master has requested data. Returning ");
+  Serial.println(index);
+
+  buf[0] = index >> 8;
+  buf[1] = index;
+  Wire.write(buf, 2);
+  
+  index++;
+}

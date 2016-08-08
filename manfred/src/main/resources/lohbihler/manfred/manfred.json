@@ -1,0 +1,14 @@
+{
+  "test": {
+    "signaller": null,
+    "gpsPort": "COM3",
+  },
+  "prod": {
+    "signaller": {
+      "type": "rgy",
+      "red": "GPIO 0",
+      "yellow": "GPIO 2",
+      "green": "GPIO 3",
+    },
+  },
+}
