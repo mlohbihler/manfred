@@ -32,7 +32,8 @@ public class GPGGA extends NmeaMessage {
     private final String dgpsReferenceStationId;
 
     GPGGA(String[] parts) {
-        //        assert (parts.length == 14);
+        if (parts.length != 14)
+            throw new RuntimeException();
 
         time = parts[0];
         latitude = parseLatitude(parts[1], parts[2]);
@@ -41,10 +42,12 @@ public class GPGGA extends NmeaMessage {
         numberOfSatellites = Integer.parseInt(parts[6]);
         horizontalDilution = parseOptionalDouble(parts[7], 0);
 
-        //        assert (parts[9].equals(METERS));
+        if (!parts[9].equals(METERS))
+            throw new RuntimeException();
         altitudeMeters = parseOptionalDouble(parts[8], 0);
 
-        //        assert (parts[11].equals(METERS));
+        if (!parts[11].equals(METERS))
+            throw new RuntimeException();
         heightOfGeoidMeters = parseOptionalDouble(parts[10], 0);
 
         timeSinceLastDGPSUpdate = parseOptionalInt(parts[12], -1);

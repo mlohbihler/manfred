@@ -7,13 +7,16 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinytsdb.TinyTSDB;
 import org.tinytsdb.TinyTSDBFactory;
 
+import com.pi4j.io.gpio.GpioController;
+
 import lohbihler.atomicjson.JMap;
+import lohbihler.manfred.gpio.GpioFactory;
+import lohbihler.manfred.i2c.I2CReader;
 import lohbihler.manfred.nmea.GPSSerialReader;
 import lohbihler.manfred.signal.Signaller;
 import lohbihler.manfred.signal.Signaller.Signal;
@@ -25,6 +28,7 @@ import lohbihler.manfred.tinytsdb.GpsSampleSerializer;
 import lohbihler.manfred.util.JsonPropertiesLoader;
 
 // TODO add a battery monitor with signalling
+// Add monitors to detect when data is not being received, temporally or if values are out of range.
 public class FlightLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlightLogger.class);
 
@@ -34,13 +38,14 @@ public class FlightLogger {
 
     private JMap props;
 
-    private GpioFacade gpio;
+    private GpioController gpio;
     private Signaller signaller;
     private TinyTSDB<FlightSample> flightDb;
     private TinyTSDB<GpsSample> gpsDb;
     private final FlightSample flightRegister = new FlightSample();
     private final GpsSample gpsRegister = new GpsSample();
     private GPSSerialReader gpsReader;
+    private I2CReader i2cReader;
     private Timer timer;
 
     private FlightLogger() {
@@ -77,7 +82,7 @@ public class FlightLogger {
                 while (true) {
                     final String s = in.nextLine();
                     if ("exit".equals(s))
-                        System.exit(0);
+                        break;
                     LOGGER.info("Unknown command [{}]. Try 'exit'", s);
                 }
             }
@@ -92,14 +97,18 @@ public class FlightLogger {
             catch (final InterruptedException ie) {
                 LOGGER.error("Signal interrupted", ie);
             }
+
+            unconfigure();
         }
     }
 
     private void configure() throws Exception {
         LOGGER.info("Running configuration... ");
 
-        // Configuration
-        gpio = new GpioFacade();
+        // GPIO
+        final String gpioFactoryClazz = props.get("gpioFactory");
+        final GpioFactory gpioFactory = (GpioFactory) Class.forName(gpioFactoryClazz).newInstance();
+        gpio = gpioFactory.get();
 
         // Start the signaller
         signaller = SignallerFactory.createSignaller(gpio, props);
@@ -109,28 +118,28 @@ public class FlightLogger {
         gpsDb = TinyTSDBFactory.createDatabase(new File("gps"), GpsSampleSerializer.get());
 
         // Start the GPS reader.
-        final String gpsPort = props.get("gpsPort");
-        if (StringUtils.isBlank(gpsPort))
+        final JMap gpsProps = props.get("gps");
+        if (gpsProps == null)
             LOGGER.info("GPS port not defined. Not starting GPS logger.");
         else {
-            gpsReader = new GPSSerialReader(gpsRegister, gpsPort);
+            gpsReader = new GPSSerialReader(gpsRegister, gpsProps);
             gpsReader.start();
         }
 
-        // TODO Start the nano reader
+        // Start the nano reader
+        i2cReader = new I2CReader(flightRegister, signaller, props);
+        i2cReader.start();
 
         // Start the timer.
         timer = new Timer("Log timer");
 
         // Schedule the GPS logger every second.
         scheduleAtFixedRate(() -> {
-            LOGGER.debug("GPS Logger");
             gpsDb.write("gps", System.currentTimeMillis(), gpsRegister);
         }, 1000);
 
         // Schedule the nano logger
         scheduleAtFixedRate(() -> {
-            LOGGER.debug("Flight Logger");
             flightDb.write("flight", System.currentTimeMillis(), flightRegister);
         }, 10);
 
@@ -145,6 +154,11 @@ public class FlightLogger {
         if (timer != null)
             timer.cancel();
 
+        if (i2cReader != null) {
+            i2cReader.stop();
+            i2cReader.close();
+        }
+
         if (gpsReader != null) {
             gpsReader.stop();
             closeQuietly(gpsReader);
@@ -153,7 +167,8 @@ public class FlightLogger {
         closeQuietly(gpsDb);
         closeQuietly(flightDb);
 
-        gpio.shutdown();
+        if (gpio != null)
+            gpio.shutdown();
 
         LOGGER.info("Unconfiguration complete.");
     }
@@ -173,6 +188,7 @@ public class FlightLogger {
                 db.close();
         }
         catch (final IOException e) {
+            // Not entirely quiet
             LOGGER.warn("Error closing DB", e);
         }
     }

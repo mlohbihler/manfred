@@ -1,13 +1,20 @@
 // This is the sketch for Manfred on the Nano.
 
+// Wire is needed for I2C with the Pi
 #include <Wire.h>
+
+// Servo is used to read the plane's servo states.
 #include <Servo.h>
+
+// Needed to read the ultrasonic ranger.
 #include "Ultrasonic.h"
 
 byte buf[2];
 int index = 32500;
 
 void setup() {
+  // Serial is used for debugging only. All communication 
+  // the the Pi is done through I2C.
   Serial.begin(115200);
   Serial.println("Nano startup");
   

@@ -22,11 +22,16 @@
 | 37)              | 38)               |
 | 39)              | 40)               |
 
+#Common
+3V3)
+5V)
+GND)
+
 #GPS
 TX) Raspi:10
 RX) Raspi:8
 GND) Power:GND
-VIN) Power:5V
+VIN) Power:3V3
 
 #Nano
 | Pin                | Pin                |

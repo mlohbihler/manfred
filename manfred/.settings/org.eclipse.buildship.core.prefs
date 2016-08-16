@@ -10,4 +10,5 @@ connection.project.dir=
 derived.resources=.gradle,build
 eclipse.preferences.version=1
 natures=org.eclipse.jdt.core.javanature
+connection.gradle.user.home=null
 project.path=\:

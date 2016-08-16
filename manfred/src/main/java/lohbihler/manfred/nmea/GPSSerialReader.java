@@ -3,21 +3,25 @@ package lohbihler.manfred.nmea;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.serotonin.log.IOLog;
 import com.serotonin.messaging2.MessageControl;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import lohbihler.atomicjson.JMap;
 import lohbihler.manfred.nmea.message.GPGGA;
 import lohbihler.manfred.nmea.message.GPRMC;
 import lohbihler.manfred.nmea.message.PMTK;
 import lohbihler.manfred.nmea.message.PMTK001;
 import lohbihler.manfred.tinytsdb.GpsSample;
 
+// TODO signal in case of trouble.
 public class GPSSerialReader implements Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(GPSSerialReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GPSSerialReader.class);
 
     private final GpsSample register;
     private final SerialPort port;
@@ -25,10 +29,10 @@ public class GPSSerialReader implements Closeable {
     private final SerialPortTransport transport;
     private boolean running;
 
-    public GPSSerialReader(GpsSample register, String portId) throws Exception {
+    public GPSSerialReader(GpsSample register, JMap props) throws Exception {
         this.register = register;
 
-        port = new SerialPort(portId);
+        port = new SerialPort(props.get("port"));
         boolean success = port.openPort();
         if (!success)
             throw new RuntimeException("Failed to open serial port");
@@ -38,12 +42,18 @@ public class GPSSerialReader implements Closeable {
             throw new RuntimeException("Failed to set serial port params");
 
         messageControl = new MessageControl();
+        messageControl.setExceptionHandler(e -> LOGGER.error("GPS read error", e));
+
+        final String ioLog = props.get("ioLog");
+        if (!StringUtils.isEmpty(ioLog))
+            messageControl.setIoLog(new IOLog(ioLog));
+
         transport = new SerialPortTransport(port);
     }
 
     public void start() throws IOException {
         if (!running) {
-            LOG.info("Starting GPS logger");
+            LOGGER.info("Starting GPS logger");
 
             messageControl.start(transport, new NmeaParser(), request -> {
                 if (request instanceof GPRMC) {
@@ -68,7 +78,7 @@ public class GPSSerialReader implements Closeable {
             running = true;
         }
         else
-            LOG.warn("GPS Logger already started. Ignoring start call");
+            LOGGER.warn("GPS Logger already started. Ignoring start call");
     }
 
     private void sendCommand(String command, String parameters) throws IOException {
@@ -80,13 +90,13 @@ public class GPSSerialReader implements Closeable {
 
     public void stop() {
         if (running) {
-            LOG.info("Stopping GPS logger");
+            LOGGER.info("Stopping GPS logger");
             running = false;
 
             messageControl.close();
         }
         else
-            LOG.warn("GPS Logger not running. Ignoring stop call");
+            LOGGER.warn("GPS Logger not running. Ignoring stop call");
     }
 
     @Override
@@ -97,7 +107,7 @@ public class GPSSerialReader implements Closeable {
                 port.closePort();
             }
             catch (final SerialPortException e) {
-                LOG.warn("Error closing serial port", e);
+                LOGGER.warn("Error closing serial port", e);
             }
         }
     }

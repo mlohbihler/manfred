@@ -5,7 +5,7 @@ public class FlightSample {
     private int accelX;
     private int accelY;
     private int accelZ;
-    private int temp;
+    private float temp;
     private int gyroX;
     private int gyroY;
     private int gyroZ;
@@ -46,11 +46,11 @@ public class FlightSample {
         this.accelZ = accelZ;
     }
 
-    public int getTemp() {
+    public float getTemp() {
         return temp;
     }
 
-    public void setTemp(int temp) {
+    public void setTemp(float temp) {
         this.temp = temp;
     }
 
@@ -140,7 +140,7 @@ public class FlightSample {
         result = prime * result + gyroY;
         result = prime * result + gyroZ;
         result = prime * result + rudder;
-        result = prime * result + temp;
+        result = prime * result + Float.floatToIntBits(temp);
         result = prime * result + throttle;
         result = prime * result + usDistance;
         return result;
@@ -175,7 +175,7 @@ public class FlightSample {
             return false;
         if (rudder != other.rudder)
             return false;
-        if (temp != other.temp)
+        if (Float.floatToIntBits(temp) != Float.floatToIntBits(other.temp))
             return false;
         if (throttle != other.throttle)
             return false;

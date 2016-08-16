@@ -21,7 +21,8 @@ public class GPGSA extends NmeaMessage {
     private final double vdop;
 
     GPGSA(String[] parts) {
-        //        assert (parts.length == 17);
+        if (parts.length != 17)
+            throw new RuntimeException();
 
         operationMode = OperationMode.valueOf(parts[0]);
         fixMode = FixMode.values()[Integer.parseInt(parts[1]) - 1];

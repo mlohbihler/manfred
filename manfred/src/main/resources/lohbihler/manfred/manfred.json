@@ -1,9 +1,16 @@
 {
   "test": {
+    "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$FakeyGpioFactory",
+    "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$FakeyI2CFactory",
     "signaller": null,
-    "gpsPort": "COM3",
+    "gps": {
+      "port": "COM3",
+      // "ioLog": "logs/gpsIoLog.txt",
+    },
   },
   "prod": {
+    "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$RealGpioFactory",
+    "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$RealI2CFactory",
     "signaller": {
       "type": "rgy",
       "red": "GPIO 0",
