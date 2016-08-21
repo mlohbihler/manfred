@@ -50,6 +50,11 @@ public class PMTK implements OutgoingMessage {
         return response;
     }
 
+    @Override
+    public String toString() {
+        return "PMTK [command=" + command + ", parameters=" + parameters + "]";
+    }
+
     private String addChecksum(String command) {
         final ByteQueue queue = new ByteQueue(command.getBytes(NmeaParser.ASCII));
         final int cs = NmeaParser.calculateChecksum(queue);
