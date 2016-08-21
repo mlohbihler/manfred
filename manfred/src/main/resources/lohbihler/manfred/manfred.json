@@ -13,9 +13,12 @@
     "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$RealI2CFactory",
     "signaller": {
       "type": "rgy",
-      "red": "GPIO 0",
-      "yellow": "GPIO 2",
-      "green": "GPIO 3",
+      "red": "GPIO 3",
+      "yellow": "GPIO 0",
+      "green": "GPIO 2",
+    },
+    "gps": {
+      "port": "/dev/ttyAMA0",
     },
   },
 }
