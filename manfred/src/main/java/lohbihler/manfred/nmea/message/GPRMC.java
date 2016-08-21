@@ -30,7 +30,7 @@ public class GPRMC extends NmeaMessage {
     private final FaaMode faaMode;
 
     GPRMC(String[] parts) {
-        if (parts.length != 11)
+        if (parts.length != 12)
             throw new RuntimeException();
 
         time = parts[0];

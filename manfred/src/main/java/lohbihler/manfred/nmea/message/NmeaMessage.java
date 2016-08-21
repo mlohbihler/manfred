@@ -7,15 +7,13 @@ import org.slf4j.LoggerFactory;
 
 import com.serotonin.messaging2.IncomingMessage;
 
-import lohbihler.manfred.nmea.NmeaParser;
-
 /**
  * Message structures can be found here: http://aprs.gids.nl/nmea/
  *
  * @author Matthew
  */
 abstract public class NmeaMessage implements IncomingMessage {
-    static final Logger LOG = LoggerFactory.getLogger(NmeaParser.class);
+    static final Logger LOG = LoggerFactory.getLogger(NmeaMessage.class);
 
     public static final IgnoredNmeaMessage IGNORED = new IgnoredNmeaMessage();
 

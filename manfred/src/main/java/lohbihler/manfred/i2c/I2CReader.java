@@ -62,7 +62,7 @@ public class I2CReader implements Runnable, Closeable {
     private boolean nanoProblem;
 
     static byte[] mpu6050Buffer = new byte[14];
-    static byte[] nanoBuffer = new byte[10];
+    static byte[] nanoBuffer = new byte[12];
 
     public I2CReader(FlightSample flightRegister, Signaller signaller, JMap props) throws Exception {
         this.flightRegister = flightRegister;
@@ -107,7 +107,8 @@ public class I2CReader implements Runnable, Closeable {
             LOGGER.info("Who am i: {}", +mpu6050.read(WHOAMI));
 
             running = true;
-            new Thread(this, "I2CReader").start();
+            thread = new Thread(this, "I2CReader");
+            thread.start();
         }
         else
             LOGGER.warn("I2C Reader already started. Ignoring start call");
@@ -163,7 +164,7 @@ public class I2CReader implements Runnable, Closeable {
             flightRegister.setAccelX(combine(mpu6050Buffer, ACCEL_XOUT_H_OFF));
             flightRegister.setAccelY(combine(mpu6050Buffer, ACCEL_YOUT_H_OFF));
             flightRegister.setAccelZ(combine(mpu6050Buffer, ACCEL_ZOUT_H_OFF));
-            flightRegister.setTemp(readTemp(mpu6050Buffer));
+            flightRegister.setTemp(readTemp(mpu6050Buffer, TEMP_OUT_H_OFF));
             flightRegister.setGyroX(combine(mpu6050Buffer, GYRO_XOUT_H_OFF));
             flightRegister.setGyroY(combine(mpu6050Buffer, GYRO_YOUT_H_OFF));
             flightRegister.setGyroZ(combine(mpu6050Buffer, GYRO_ZOUT_H_OFF));
@@ -192,8 +193,8 @@ public class I2CReader implements Runnable, Closeable {
             flightRegister.setAilerons(combine(nanoBuffer, 2));
             flightRegister.setElevator(combine(nanoBuffer, 4));
             flightRegister.setRudder(combine(nanoBuffer, 6));
-            flightRegister.setUsDistance(read(nanoBuffer, 8));
-            flightRegister.setBatteryLevel(read(nanoBuffer, 9));
+            flightRegister.setUsDistance(combine(nanoBuffer, 8));
+            flightRegister.setBatteryLevel(combine(nanoBuffer, 10));
 
             if (nanoProblem) {
                 signaller.setSignal(SIGNALLER_NANO, Signal.ok);
@@ -209,8 +210,8 @@ public class I2CReader implements Runnable, Closeable {
         }
     }
 
-    private static float readTemp(byte[] buf) {
-        return combine(buf, TEMP_OUT_H_OFF) / 340F + 36.53F;
+    private static float readTemp(byte[] buf, int start) {
+        return combine(buf, start) / 340F + 36.53F;
     }
 
     private static int combine(byte[] buf, int start) {
