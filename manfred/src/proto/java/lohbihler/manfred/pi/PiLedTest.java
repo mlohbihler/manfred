@@ -3,6 +3,7 @@ package lohbihler.manfred.pi;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 
@@ -19,15 +20,18 @@ public class PiLedTest {
     }
 
     static void threeLed() throws Exception {
-        final GpioPinDigitalOutput r = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, "RLED", PinState.HIGH);
+        final Pin rpin = RaspiPin.getPinByName("GPIO 3");
+        final GpioPinDigitalOutput r = gpio.provisionDigitalOutputPin(rpin, "RLED", PinState.HIGH);
         r.low();
-        final GpioPinDigitalOutput b = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, "BLED", PinState.HIGH);
-        b.low();
-        final GpioPinDigitalOutput g = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_03, "GLED", PinState.HIGH);
+        final Pin ypin = RaspiPin.getPinByName("GPIO 0");
+        final GpioPinDigitalOutput y = gpio.provisionDigitalOutputPin(ypin, "YLED", PinState.HIGH);
+        y.low();
+        final Pin gpin = RaspiPin.getPinByName("GPIO 2");
+        final GpioPinDigitalOutput g = gpio.provisionDigitalOutputPin(gpin, "GLED", PinState.HIGH);
         g.low();
 
         r.setShutdownOptions(true, PinState.LOW);
-        b.setShutdownOptions(true, PinState.LOW);
+        y.setShutdownOptions(true, PinState.LOW);
         g.setShutdownOptions(true, PinState.LOW);
 
         // Red
@@ -35,12 +39,12 @@ public class PiLedTest {
         Thread.sleep(1000);
         r.low();
 
-        // Green
-        b.high();
+        // Yellow
+        y.high();
         Thread.sleep(1000);
-        b.low();
+        y.low();
 
-        // Blue
+        // Green
         g.high();
         Thread.sleep(1000);
         g.low();
@@ -58,10 +62,10 @@ public class PiLedTest {
         //        g.low();
 
         g.high();
-        b.high();
+        y.high();
         Thread.sleep(2000);
         g.low();
-        b.low();
+        y.low();
 
         //        r.high();
         //        g.high();

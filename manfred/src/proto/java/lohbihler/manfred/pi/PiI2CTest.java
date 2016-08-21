@@ -39,7 +39,7 @@ public class PiI2CTest {
     static I2CDevice nano;
 
     static byte[] mpu6050Buffer = new byte[14];
-    static byte[] nanoBuffer = new byte[2];
+    static byte[] nanoBuffer = new byte[12];
 
     public static void main(String[] args) throws Exception {
         bus = I2CFactory.getInstance(BUS);
@@ -81,19 +81,19 @@ public class PiI2CTest {
 
         int iters = 2000;
         while (iters-- > 0) {
-            int readCount = mpu6050.read(READ_START, mpu6050Buffer, 0, mpu6050Buffer.length);
+            final int readCount = mpu6050.read(READ_START, mpu6050Buffer, 0, mpu6050Buffer.length);
             if (readCount < mpu6050Buffer.length)
                 System.out.println("mpu6050Buffer not read in entirety: " + readCount);
 
-            System.out.println("Accel:\t" //
-                    + combine(mpu6050Buffer, ACCEL_XOUT_H_OFF) + "\t" //
-                    + combine(mpu6050Buffer, ACCEL_YOUT_H_OFF) + "\t" //
-                    + combine(mpu6050Buffer, ACCEL_ZOUT_H_OFF) + "\t" //
-                    + "Gyro:\t" //
-                    + combineFlatter(mpu6050Buffer, GYRO_XOUT_H_OFF) + "\t" //
-                    + combineFlatter(mpu6050Buffer, GYRO_YOUT_H_OFF) + "\t" //
-                    + combineFlatter(mpu6050Buffer, GYRO_ZOUT_H_OFF) + "\t" //
-                    + "Temp:\t" + readTemp(mpu6050Buffer));
+            //            System.out.println("Accel:\t" //
+            //                    + combine(mpu6050Buffer, ACCEL_XOUT_H_OFF) + "\t" //
+            //                    + combine(mpu6050Buffer, ACCEL_YOUT_H_OFF) + "\t" //
+            //                    + combine(mpu6050Buffer, ACCEL_ZOUT_H_OFF) + "\t" //
+            //                    + "Gyro:\t" //
+            //                    + combineFlatter(mpu6050Buffer, GYRO_XOUT_H_OFF) + "\t" //
+            //                    + combineFlatter(mpu6050Buffer, GYRO_YOUT_H_OFF) + "\t" //
+            //                    + combineFlatter(mpu6050Buffer, GYRO_ZOUT_H_OFF) + "\t" //
+            //                    + "Temp:\t" + readTemp(mpu6050Buffer));
 
             //            System.out.println("Accel: " //
             //                    + combineFlatter(mpu6050Buffer, ACCEL_XOUT_H) + " " //
@@ -105,7 +105,14 @@ public class PiI2CTest {
             //                    + combineFlatter(mpu6050Buffer, GYRO_YOUT_H) + " " //
             //                    + combineFlatter(mpu6050Buffer, GYRO_ZOUT_H));
 
-            System.out.println("Nano:\t" + readNano() + "\t" + read(nanoBuffer, 0) + "\t" + read(nanoBuffer, 1));
+            readNano();
+            System.out.println("T:" + combine(nanoBuffer, 0) //
+                    + "\tA:" + combine(nanoBuffer, 2) //
+                    + "\tE:" + combine(nanoBuffer, 4) //
+                    + "\tR:" + combine(nanoBuffer, 6) //
+                    + "\tD:" + combine(nanoBuffer, 8) //
+                    + "\tB:" + combine(nanoBuffer, 10));
+
             Thread.sleep(100);
         }
     }
@@ -114,16 +121,15 @@ public class PiI2CTest {
     //
     //    }
 
-    static int readNano() {
+    static void readNano() {
         try {
-            int readCount = nano.read(0, nanoBuffer, 0, nanoBuffer.length);
+            final int readCount = nano.read(0, nanoBuffer, 0, nanoBuffer.length);
             if (readCount < nanoBuffer.length)
                 System.out.println("nanoBuffer not read in entirety: " + readCount);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             System.out.println(e.getMessage());
         }
-        return combine(nanoBuffer, 0);
     }
 
     static float readTemp(byte[] buf) {
