@@ -3,14 +3,28 @@
 // Wire is needed for I2C with the Pi
 #include <Wire.h>
 
-// Servo is used to read the plane's servo states.
-#include <Servo.h>
-
 // Needed to read the ultrasonic ranger.
 #include "Ultrasonic.h"
 
-byte buf[2];
-int index = 32500;
+// Response buffer.
+// 0-1 Throttle
+// 2-3 Aileron
+// 4-5 Elevator
+// 6-7 Rudder
+// 8-9 Ultra distance
+// 10-11 Battery
+byte buf[12];
+
+long throttle;
+long aileron;
+long elevator;
+long rudder;
+long a6;
+long a7;
+long height;
+long vcc;
+
+Ultrasonic ultrasonic(8, 7);
 
 void setup() {
   // Serial is used for debugging only. All communication 
@@ -18,28 +32,73 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Nano startup");
   
-  // Start wire (I2C)
+  // Start wire (I2C). Used A4 and A5.
   Wire.begin(112); // I2C address 0x70.
   Wire.onRequest(requestEvent);
+  
+  // Initialize the analog input pins
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A6, INPUT);
+  pinMode(A7, INPUT);
 }
 
 void loop() {
   // Read servos
+  rudder = pulseIn(A0, HIGH, 40000);
+  elevator = pulseIn(A1, HIGH, 40000);
+  aileron = pulseIn(A2, HIGH, 40000);
+  throttle = pulseIn(A3, HIGH, 40000);
+  
   // Read ultrasonic
-  Serial.println("Start loop");
-  delay(1000);
-  Serial.println("End loop");
+  height = ultrasonic.Ranging(CM);
+  
+  // Read VCC
+  vcc = readVcc();
+  
+  Serial.print(throttle);
+  Serial.print("\t");
+  Serial.print(aileron);
+  Serial.print("\t");
+  Serial.print(elevator);
+  Serial.print("\t");
+  Serial.print(rudder);
+  Serial.print("\t");
+  Serial.print(height);
+  Serial.print("\t");
+  Serial.print(vcc);
+  Serial.println();
 }
 
 // Function that is executed whenever data is requested
 // by the master. Registered in setup().
 void requestEvent() {
-  Serial.print("Master has requested data. Returning ");
-  Serial.println(index);
-
-  buf[0] = index >> 8;
-  buf[1] = index;
-  Wire.write(buf, 2);
+  buf[0] = throttle >> 8;
+  buf[1] = throttle;
+  buf[2] = aileron >> 8;
+  buf[3] = aileron;
+  buf[4] = elevator >> 8;
+  buf[5] = elevator;
+  buf[6] = rudder >> 8;
+  buf[7] = rudder;
+  buf[8] = height >> 8;
+  buf[9] = height;
+  buf[10] = vcc >> 8;
+  buf[11] = vcc;
   
-  index++;
+  Wire.write(buf, 12);
+}
+
+// Read 1.1V reference against AVcc into vcc
+long readVcc() {
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Convert
+  while (bit_is_set(ADCSRA,ADSC));
+  long result = ADCL;
+  result |= ADCH<<8;
+  result = 1126400L / result; // Back-calculate AVcc in mV
+  return result;
 }
