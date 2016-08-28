@@ -5,6 +5,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.tinytsdb.ByteArrayBuilder;
 
+import lohbihler.manfred.datalog.FlightSample;
+import lohbihler.manfred.datalog.tinytsdb.FlightSampleSerializer;
+
 public class FlightSampleSerializerTest {
     @Test
     public void test() {

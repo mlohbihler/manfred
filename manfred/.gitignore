@@ -1,6 +1,7 @@
 .gradle
 /bin
 /build
+/data
 /flight
 /gps
 /lib-opt

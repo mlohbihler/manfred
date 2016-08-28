@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.tinytsdb.ByteArrayBuilder;
 
+import lohbihler.manfred.datalog.GpsSample;
+import lohbihler.manfred.datalog.tinytsdb.GpsSampleSerializer;
 import lohbihler.manfred.nmea.message.GPGGA;
 import lohbihler.manfred.nmea.message.GPRMC;
 import lohbihler.manfred.nmea.message.GPRMC.NavigationReceiver;

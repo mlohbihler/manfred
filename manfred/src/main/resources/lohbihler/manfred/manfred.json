@@ -1,14 +1,17 @@
 {
   "test": {
+    "dataLogger": "lohbihler.manfred.datalog.text.TextFileDataLogger"
     "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$FakeyGpioFactory",
     "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$FakeyI2CFactory",
     "signaller": null,
     "gps": {
-      "port": "COM3",
+      "factory": "lohbihler.manfred.nmea.GPSSerialReader$FakeyGPSSerialReader"
+      // "port": "COM3",
       // "ioLog": "logs/gpsIoLog.txt",
     },
   },
   "prod": {
+    "dataLogger": "lohbihler.manfred.datalog.text.TextFileDataLogger"
     "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$RealGpioFactory",
     "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$RealI2CFactory",
     "signaller": {
@@ -18,6 +21,7 @@
       "green": "GPIO 2",
     },
     "gps": {
+      "factory": "lohbihler.manfred.nmea.GPSSerialReader$RealGPSSerialReader"
       "port": "/dev/ttyAMA0",
     },
   },

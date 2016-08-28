@@ -10,10 +10,10 @@ import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
 import lohbihler.atomicjson.JMap;
+import lohbihler.manfred.datalog.FlightSample;
 import lohbihler.manfred.gpio.I2CFactory;
 import lohbihler.manfred.signal.Signaller;
 import lohbihler.manfred.signal.Signaller.Signal;
-import lohbihler.manfred.tinytsdb.FlightSample;
 
 public class I2CReader implements Runnable, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(I2CReader.class);
