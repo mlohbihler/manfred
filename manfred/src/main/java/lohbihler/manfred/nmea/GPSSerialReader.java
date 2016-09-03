@@ -116,8 +116,8 @@ public interface GPSSerialReader extends Closeable {
     public class FakeyGPSSerialReader implements GPSSerialReader {
         @Override
         public void start(final GpsSample register, final JMap props) throws Exception {
-            register.setGpgga(new GPGGA("time", 1.1, 2.2, FixQuality.gpsFix, 2, 3.3, 4.4, 5.5, 6, "stat"));
-            register.setGprmc(new GPRMC("rtime", null, 11.1, 22.2, 33.3, 44.4, null, 55.5, Compass.E, FaaMode.M));
+            register.setGpgga(new GPGGA("time", 43.887, -79.299, FixQuality.gpsFix, 2, 3.3, 4.4, 5.5, 6, "stat"));
+            register.setGprmc(new GPRMC("rtime", null, 43.887, -79.299, 33.3, 44.4, null, 55.5, Compass.E, FaaMode.M));
         }
 
         @Override

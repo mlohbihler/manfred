@@ -1,7 +1,8 @@
 package lohbihler.manfred;
 
 import java.util.Scanner;
-import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class FlightLogger {
     private final GpsSample gpsRegister = new GpsSample();
     private GPSSerialReader gpsReader;
     private I2CReader i2cReader;
-    private Timer timer;
+    private ScheduledExecutorService timer;
 
     private FlightLogger() {
         String env = System.getProperty("env");
@@ -103,7 +104,7 @@ public class FlightLogger {
         signaller = SignallerFactory.createSignaller(gpio, props);
 
         // Start the timer.
-        timer = new Timer("Log timer");
+        timer = Executors.newScheduledThreadPool(3);
 
         // Start the GPS reader.
         final JMap gpsProps = props.get("gps");
@@ -112,15 +113,16 @@ public class FlightLogger {
         gpsReader = (GPSSerialReader) Class.forName(gpsFactoryClazz).newInstance();
         gpsReader.start(gpsRegister, gpsProps);
 
-        // Start the data logger
-        final String dataLoggerClazz = props.get("dataLogger");
-        LOGGER.info("dataLoggerClazz = {}", dataLoggerClazz);
-        dataLogger = (DataLogger) Class.forName(dataLoggerClazz).newInstance();
-        dataLogger.start(flightRegister, gpsRegister, timer);
-
         // Start the nano reader
         i2cReader = new I2CReader(flightRegister, signaller, props);
         i2cReader.start();
+
+        // Initialize the data logger
+        final JMap dataLoggerProps = props.get("dataLogger");
+        final String dataLoggerClazz = dataLoggerProps.get("class");
+        LOGGER.info("dataLoggerClazz = {}", dataLoggerClazz);
+        dataLogger = (DataLogger) Class.forName(dataLoggerClazz).newInstance();
+        dataLogger.init(flightRegister, gpsRegister, timer, dataLoggerProps, signaller);
 
         // Show alert when configuration is done.
         signaller.alert(2000);
@@ -131,7 +133,10 @@ public class FlightLogger {
         LOGGER.info("Running unconfiguration... ");
 
         if (timer != null)
-            timer.cancel();
+            timer.shutdown();
+
+        if (dataLogger != null)
+            dataLogger.stop();
 
         if (i2cReader != null) {
             i2cReader.stop();
@@ -140,9 +145,6 @@ public class FlightLogger {
 
         if (gpsReader != null)
             Util.closeQuietly(gpsReader);
-
-        if (dataLogger != null)
-            dataLogger.stop();
 
         if (gpio != null)
             gpio.shutdown();

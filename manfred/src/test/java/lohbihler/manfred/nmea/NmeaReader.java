@@ -10,9 +10,9 @@ import lohbihler.manfred.nmea.message.NmeaMessage;
 
 public class NmeaReader {
     public static void main(String[] args) throws Exception {
-        //        final String filename = "nmea.out";
+        final String filename = "nmea.out";
         //        final String filename = "nmea2.out";
-        final String filename = "nmea3.out";
+        //        final String filename = "nmea3.out";
 
         final ByteQueue queue = new ByteQueue();
         final NmeaParser parser = new NmeaParser();

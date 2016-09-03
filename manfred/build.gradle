@@ -1,4 +1,14 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'org.hidetake:gradle-ssh-plugin:2.6.0'
+  }
+}
+
 apply plugin: 'java'
+apply plugin: 'org.hidetake.ssh'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -6,50 +16,82 @@ targetCompatibility = JavaVersion.VERSION_1_8
 version = '1.0.0'
 
 jar {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
-    }
+  manifest {
+    attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+  }
 }
 
 repositories {
-    mavenCentral()
-    flatDir { dirs 'lib' }
+  mavenCentral()
+  flatDir { dirs 'lib' }
+}
+
+ssh.remotes {
+  pi {
+    user = 'pi'
+    host = '192.168.0.125'
+    password = 'raspberry'
+  }
+}
+
+ssh.settings {
+  knownHosts = allowAnyHosts
 }
 
 dependencies {
-    compile group: 'com.pi4j', name: 'pi4j-core', version: '1.0'
-    compile group: 'com.pi4j', name: 'pi4j-gpio-extension', version: '1.0'
-    
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile group: 'org.scream3r', name: 'jssc', version: '2.8.0'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.12'
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.12'
-    compile name: 'atomic-json', version: '1.0.0'
-    compile name: 'serotonin-utils', version: '2.1.8'
-    compile name: 'Timer', version: '2.0.1'
-    compile name: 'tiny-tsdb', version: '2.0.0'
-    
-    testCompile group: 'junit', name: 'junit', version: '4.+'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.0.44-beta'
-    testCompile group: 'pl.pragmatists', name: 'JUnitParams', version: '1.0.5'
+  compile group: 'com.pi4j', name: 'pi4j-core', version: '1.0'
+  compile group: 'com.pi4j', name: 'pi4j-gpio-extension', version: '1.0'
+  
+  compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+  compile group: 'org.scream3r', name: 'jssc', version: '2.8.0'
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.12'
+  compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.12'
+  compile name: 'atomic-json', version: '1.0.0'
+  compile name: 'serotonin-utils', version: '2.1.8'
+  compile name: 'Timer', version: '2.0.1'
+  compile name: 'tiny-tsdb', version: '2.0.0'
+  
+  testCompile group: 'junit', name: 'junit', version: '4.+'
+  testCompile group: 'org.mockito', name: 'mockito-core', version: '2.0.44-beta'
+  testCompile group: 'pl.pragmatists', name: 'JUnitParams', version: '1.0.5'
 }
 
 uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
+  repositories {
+    flatDir {
+      dirs 'repos'
     }
+  }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    setGroup('build')
-    classifier = 'sources'
-    from sourceSets.main.allSource
+task sourcesJar(type: Jar, dependsOn: classes, group: 'build') {
+  classifier = 'sources'
+  from sourceSets.main.allSource
 }
 
-task copyRuntimeLibs(type: Copy) {
-    setGroup('build')
-    into "lib-opt"
-    from configurations.runtime
+task copyRuntimeLibs(type: Copy, group: 'build') {
+  into "lib-opt"
+  from configurations.runtime
+  
+  ssh.run {
+    session(ssh.remotes.pi) {
+      put from: projectDir.toString() + '\\lib-opt\\*.jar', into: '/home/pi/manfred/lib/'
+    }
+  }
+}
+
+task deployToPi(group: 'build', dependsOn: jar) << {
+  ssh.run {
+    session(ssh.remotes.pi) {
+      put from: file('build\\libs\\manfred-'+ version +'.jar'), into: '/home/pi/manfred/lib/'
+    }
+  }
+}
+
+task getDataFromPi(group: 'build') << {
+  ssh.run {
+    session(ssh.remotes.pi) {
+      get from: '/home/pi/manfred/data/*', into: projectDir.toString() + '/data/remote/'
+    }
+  }
 }

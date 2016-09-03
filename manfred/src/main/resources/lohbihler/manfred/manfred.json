@@ -1,6 +1,21 @@
 {
   "test": {
-    "dataLogger": "lohbihler.manfred.datalog.text.TextFileDataLogger"
+    "dataLogger": {
+      "class": "lohbihler.manfred.datalog.text.TextFileDataLogger",
+      "directory": "data/local",
+      "enabler": {
+          /*
+          "class": "lohbihler.manfred.datalog.enabler.TimeDelayEnabler",
+          "delay": 5500,
+          */
+          "class": "lohbihler.manfred.datalog.enabler.AwayFromHomeEnabler",
+          "checkRate": 1000,
+          "minLat": 43.885,
+          "maxLat": 43.890,
+          "minLng": -79.301,
+          "maxLng": -79.297,
+      },
+    },
     "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$FakeyGpioFactory",
     "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$FakeyI2CFactory",
     "signaller": null,
@@ -11,7 +26,18 @@
     },
   },
   "prod": {
-    "dataLogger": "lohbihler.manfred.datalog.text.TextFileDataLogger"
+    "dataLogger": {
+      "class": "lohbihler.manfred.datalog.text.TextFileDataLogger",
+      "directory": "data",
+      "enabler": {
+          "class": "lohbihler.manfred.datalog.enabler.AwayFromHomeEnabler",
+          "checkRate": 3000,
+          "minLat": 43.885,
+          "maxLat": 43.890,
+          "minLng": -79.297,
+          "maxLng": -79.301,
+      },
+    },
     "gpioFactory": "lohbihler.manfred.gpio.GpioFactory$RealGpioFactory",
     "i2cFactory": "lohbihler.manfred.gpio.I2CFactory$RealI2CFactory",
     "signaller": {
