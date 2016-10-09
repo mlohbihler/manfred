@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.hidetake:gradle-ssh-plugin:2.6.0'
+    classpath 'org.hidetake:gradle-ssh-plugin:2.7.0'
   }
 }
 
@@ -80,7 +80,7 @@ task copyRuntimeLibs(type: Copy, group: 'build') {
   }
 }
 
-task deployToPi(group: 'build', dependsOn: jar) << {
+task deployToPi(group: 'build', dependsOn: jar) {
   ssh.run {
     session(ssh.remotes.pi) {
       put from: file('build\\libs\\manfred-'+ version +'.jar'), into: '/home/pi/manfred/lib/'
@@ -88,10 +88,10 @@ task deployToPi(group: 'build', dependsOn: jar) << {
   }
 }
 
-task getDataFromPi(group: 'build') << {
+task getDataFromPi(group: 'build') {
   ssh.run {
     session(ssh.remotes.pi) {
-      get from: '/home/pi/manfred/data/*', into: projectDir.toString() + '/data/remote/'
+      get from: '/home/pi/manfred/data', into: projectDir.toString() + '/data/remote/'
     }
   }
 }
