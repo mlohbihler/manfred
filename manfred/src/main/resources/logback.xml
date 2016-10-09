@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{ISO8601} %-5level %thread - %logger{36}.%M:%L - %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+   <file>logs/manfred.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>manfred.%i.log</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>8</maxIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>1MB</maxFileSize>
+    </triggeringPolicy>
+    <encoder>
+      <pattern>%d{ISO8601} %-5level %thread - %logger{36}.%M:%L - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="console" />
+    <appender-ref ref="file" />
+  </root>
+</configuration>
