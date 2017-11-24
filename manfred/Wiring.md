@@ -1,3 +1,5 @@
+Yeah, this is a markdown file, but it's best viewed in a test editor. Sorry about that...
+
 #Raspi
 | Pin                    | Pin                    |
 | ---------------------- | ---------------------- |
